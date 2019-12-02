@@ -1,0 +1,13 @@
+{
+  "name": "filmow-myprofile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "vinicius-sabadim <vinicius.sabadim@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"cd server && yarn start\" \"cd client && yarn start\""
+  }
+}
