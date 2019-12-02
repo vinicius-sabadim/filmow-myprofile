@@ -6,7 +6,7 @@ import './App.css'
 function moviesOrdered(movies, orderBy) {
   if (orderBy === 'dateAdded') return movies
 
-  return movies.sort((a, b) => {
+  return [...movies].sort((a, b) => {
     if (a.title === b.title) return 0
     return a.title < b.title ? -1 : 1
   })
@@ -15,32 +15,43 @@ function moviesOrdered(movies, orderBy) {
 function App() {
   const [user, setUser] = useState('')
   const [movies, setMovies] = useState([])
+  const [isFetching, setIsFetching] = useState(false)
   const [orderBy, setOrderBy] = useState('dateAdded')
 
   async function getMovies() {
+    setIsFetching(true)
+    setMovies([])
+
     const { data: movies } = await axios.get(
       `http://localhost:5000/movies/${user}`
     )
+
+    setIsFetching(false)
     setMovies(movies)
   }
 
   return (
     <div className="App">
-      <input
-        placeholder="Insert the username"
-        type="text"
-        value={user}
-        onChange={e => setUser(e.target.value)}
-      />
-      <button onClick={getMovies}>See movies</button>
+      <div>
+        <input
+          placeholder="Insert the username"
+          type="text"
+          value={user}
+          onChange={e => setUser(e.target.value)}
+        />
+        <button disabled={isFetching} onClick={getMovies}>
+          See movies
+        </button>
 
-      <select onChange={e => setOrderBy(e.target.value)}>
-        <option value="dateAdded">Date added</option>
-        <option value="alphabetically">Alphabetically</option>
-      </select>
+        <select onChange={e => setOrderBy(e.target.value)}>
+          <option value="dateAdded">Date added</option>
+          <option value="alphabetically">Alphabetically</option>
+        </select>
+      </div>
+      {isFetching && <span className="App__fetching">Fetching movies...</span>}
       <ul>
-        {moviesOrdered(movies, orderBy).map((movie, index) => (
-          <li key={index}>
+        {moviesOrdered(movies, orderBy).map(movie => (
+          <li key={movie.id}>
             {movie.title} -{' '}
             <strong>{movie.rating ? movie.rating : 'No rating'}</strong>
           </li>

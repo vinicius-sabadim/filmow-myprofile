@@ -1,20 +1,15 @@
 import express from 'express'
 import cors from 'cors'
 
-import { getMoviesForUser, readMoviesFromFile } from './scrape'
+import { getMovies } from './scrape'
 
 const app = express()
 const PORT = process.env.PORT || 5000
 
 app.use(cors())
 
-app.get('/:user', async (req, res) => {
-  const movies = await getMoviesForUser(req.params.user)
-  res.json(movies)
-})
-
 app.get('/movies/:user', async (req, res) => {
-  const movies = await readMoviesFromFile(req.params.user)
+  const movies = await getMovies(req.params.user)
   res.json(movies)
 })
 

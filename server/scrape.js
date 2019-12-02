@@ -1,12 +1,13 @@
 import axios from 'axios'
 import cheerio from 'cheerio'
 import fs from 'fs'
+import uuidv4 from 'uuid/v4'
 
 function writeOnFile(user, movies) {
   fs.writeFileSync(`movies/${user}.json`, JSON.stringify(movies))
 }
 
-export async function readMoviesFromFile(user) {
+async function readMoviesFromFile(user) {
   const file = fs.readFileSync(`movies/${user}.json`)
   const movies = JSON.parse(file)
   return movies
@@ -17,7 +18,12 @@ async function getHTML(url) {
   return html
 }
 
-export async function getMoviesForUser(user) {
+export async function getMovies(user) {
+  const path = `movies/${user}.json`
+  if (fs.existsSync(path)) {
+    return readMoviesFromFile(user)
+  }
+
   let page = 1
   let hasAnotherPage = true
   const movies = []
@@ -41,6 +47,7 @@ export async function getMoviesForUser(user) {
         const re = /Nota: (.+) estrelas?/
 
         const movie = {
+          id: uuidv4(),
           title,
           rating: rating ? rating.replace(re, '$1') : null
         }

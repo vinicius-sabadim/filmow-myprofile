@@ -26,6 +26,12 @@
   opacity: 0.8;
 }
 
+.App__fetching {
+  color: #555;
+  display: block;
+  margin: 20px 0;
+}
+
 .App ul {
   margin: 10px 0 0;
   padding: 0;
