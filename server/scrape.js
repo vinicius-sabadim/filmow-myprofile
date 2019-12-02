@@ -57,10 +57,14 @@ export async function getMovies(user) {
 
       page = page + 1
     } catch (err) {
-      console.error(err.message)
       hasAnotherPage = false
+      throw err.message
     }
   }
-  writeOnFile(user, movies)
+
+  if (movies.length > 0) {
+    writeOnFile(user, movies)
+  }
+
   return movies
 }

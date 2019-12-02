@@ -30,6 +30,14 @@
   color: #555;
   display: block;
   margin: 20px 0;
+  padding-left: 10px;
+}
+
+.App__error {
+  color: tomato;
+  display: block;
+  margin: 20px 0;
+  padding-left: 10px;
 }
 
 .App ul {

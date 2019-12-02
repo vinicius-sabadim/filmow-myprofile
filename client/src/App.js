@@ -15,19 +15,28 @@ function moviesOrdered(movies, orderBy) {
 function App() {
   const [user, setUser] = useState('')
   const [movies, setMovies] = useState([])
+  const [error, setError] = useState('')
   const [isFetching, setIsFetching] = useState(false)
   const [orderBy, setOrderBy] = useState('dateAdded')
 
   async function getMovies() {
+    setError('')
     setIsFetching(true)
     setMovies([])
 
-    const { data: movies } = await axios.get(
-      `http://localhost:5000/movies/${user}`
-    )
+    try {
+      const { data: movies } = await axios.get(
+        `http://localhost:5000/movies/${user}`
+      )
 
-    setIsFetching(false)
-    setMovies(movies)
+      setIsFetching(false)
+      setMovies(movies)
+    } catch (err) {
+      if (err.response.status === 404) {
+        setError('User not found')
+      }
+      setIsFetching(false)
+    }
   }
 
   return (
@@ -49,6 +58,7 @@ function App() {
         </select>
       </div>
       {isFetching && <span className="App__fetching">Fetching movies...</span>}
+      {error && <span className="App__error">{error}</span>}
       <ul>
         {moviesOrdered(movies, orderBy).map(movie => (
           <li key={movie.id}>
