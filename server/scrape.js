@@ -3,8 +3,8 @@ import cheerio from 'cheerio'
 import fs from 'fs'
 import uuidv4 from 'uuid/v4'
 
-function writeOnFile(user, movies) {
-  fs.writeFileSync(`movies/${user}.json`, JSON.stringify(movies))
+export function writeOnFile(fileName, content) {
+  fs.writeFileSync(fileName, content)
 }
 
 export async function readMoviesFromFile(user) {
@@ -62,7 +62,7 @@ export async function getMovies(user, startPage) {
   }
 
   if (movies.length > 0) {
-    writeOnFile(user, movies)
+    writeOnFile(`movies/${user}.json`, JSON.stringify(movies))
   }
 
   return movies

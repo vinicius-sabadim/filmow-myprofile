@@ -1,7 +1,7 @@
 import cheerio from 'cheerio'
 import child_process from 'child_process'
 
-import { getHTML, readMoviesFromFile } from './scrape'
+import { getHTML, readMoviesFromFile, writeOnFile } from './scrape'
 import logger from './utils/logger'
 
 const USER = 'thundets'
@@ -49,8 +49,9 @@ function rateMovie(url, xCSRFToken, traktSession, movieId, movieRating, movie) {
 async function track() {
   const movies = await readMoviesFromFile(USER)
   const moviesFormatted = formatMovies(movies)
+  const moviesWithError = []
 
-  moviesFormatted.forEach(async movie => {
+  for await (const movie of moviesFormatted) {
     const searchUrl = `https://trakt.tv/search?query=${movie.title}`
 
     const html = await getHTML(searchUrl)
@@ -77,11 +78,14 @@ async function track() {
         }
       } else {
         logger.error(`Too many results for the movie ${movie.title}`)
+        moviesWithError.push(movie)
       }
     } else {
       logger.error(`Movie ${movie.title} not found on search.`)
     }
-  })
+  }
+
+  writeOnFile(`movies/${USER}_error.json`, JSON.stringify(moviesWithError))
 }
 
 track()
