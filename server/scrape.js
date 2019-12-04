@@ -7,24 +7,24 @@ function writeOnFile(user, movies) {
   fs.writeFileSync(`movies/${user}.json`, JSON.stringify(movies))
 }
 
-async function readMoviesFromFile(user) {
+export async function readMoviesFromFile(user) {
   const file = fs.readFileSync(`movies/${user}.json`)
   const movies = JSON.parse(file)
   return movies
 }
 
-async function getHTML(url) {
+export async function getHTML(url) {
   const { data: html } = await axios.get(url)
   return html
 }
 
-export async function getMovies(user) {
+export async function getMovies(user, startPage) {
   const path = `movies/${user}.json`
   if (fs.existsSync(path)) {
     return readMoviesFromFile(user)
   }
 
-  let page = 1
+  let page = startPage
   let hasAnotherPage = true
   const movies = []
 
@@ -58,7 +58,6 @@ export async function getMovies(user) {
       page = page + 1
     } catch (err) {
       hasAnotherPage = false
-      throw err.message
     }
   }
 

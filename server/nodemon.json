@@ -1,4 +1,5 @@
 {
+  "ignore": ["movies/*"],
   "execMap": {
     "js": "sucrase-node"
   }

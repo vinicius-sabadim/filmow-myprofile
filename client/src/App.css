@@ -33,13 +33,6 @@
   padding-left: 10px;
 }
 
-.App__error {
-  color: tomato;
-  display: block;
-  margin: 20px 0;
-  padding-left: 10px;
-}
-
 .App ul {
   margin: 10px 0 0;
   padding: 0;
