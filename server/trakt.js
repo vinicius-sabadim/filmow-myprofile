@@ -2,6 +2,13 @@ import cheerio from 'cheerio'
 import child_process from 'child_process'
 
 import { getHTML, readMoviesFromFile } from './scrape'
+import logger from './utils/logger'
+
+const USER = 'thundets'
+const xCSRFToken =
+  'zsqXynWDnkNxO7S1FP7q4JwQkpqFiNVHLD+sLC3mEsaF0PIn6ZXLoN5+jTqKIpD1MyLgr/EDkjv1KwriIBSWoQ=='
+const traktSession =
+  'SkMxL3F4S09keG4xMTN5c1FCWWVRWlNOUzRyV2JHOXlCWmViQUpldkp4dkF5MUVYYVpRQXNoaHBqa1RyekYxOEhvTmMybEhyTW9nbUpHdm52dG4wTEVCQVlva1NGQUh3RHVYcTdMb1JadHAxcTlZWi92RCt4NnRDd1JhWGVWaHQwY2xBR0FpdkYxWnVCUHZ0YzhOQUpGVTZWMllUd0N1dWRtR0pUeEZ2cHdrTEFrUTRhbEhpZkRJUStCdFpyT3B5YkVETWRLUHQzSlVxUUEwVTJ0VTRybTVGUlN6d1lmS2p4NGRoMzZSME5EOXdwZnJUNm52Zk5sQ3h5YTlJWU5nM1FtMVR3bGY0N21aRVNpOS90RVdsS2Jqelo3TVdIY0FPSHdlUlkvbW9wUFE9LS1aQ2kyZ0Rlemc3YWM5ZTJvM3JSN1NRPT0%3D--5cf91c42a9545e2a39fc6228d9cb00292e045c25'
 
 function runCmd(cmd) {
   const resp = child_process.execSync(cmd)
@@ -17,9 +24,30 @@ function formatMovies(movies) {
   }))
 }
 
-async function run() {
-  const user = 'thundets'
-  const movies = await readMoviesFromFile(user)
+function addOnWatchList(url, xCSRFToken, traktSession, movieId, movie) {
+  const cmd = `curl -sS ${url}/watch -H 'x-csrf-token: ${xCSRFToken}' -H 'cookie: _traktsession=${traktSession}' --data 'type=movie&trakt_id=${movieId}&watched_at=now&collected_at=now' --compressed`
+  const result = runCmd(cmd)
+
+  if (result.success) {
+    logger.log(`${movie.title} was added to the watched list.`)
+  } else {
+    logger.error(`Error to add the movie ${movie.title} on watched list.`)
+  }
+}
+
+function rateMovie(url, xCSRFToken, traktSession, movieId, movieRating, movie) {
+  const cmd = `curl -sS ${url}/rate -H 'x-csrf-token: ${xCSRFToken}' -H 'cookie: _traktsession=${traktSession}' --data 'type=movie&trakt_id=${movieId}&stars=${movieRating}' --compressed`
+  const result = runCmd(cmd)
+
+  if (result.success) {
+    logger.log(`${movie.title} was rated with ${movieRating} stars.`)
+  } else {
+    logger.error(`Error to rate the movie ${movie.title}.`)
+  }
+}
+
+async function track() {
+  const movies = await readMoviesFromFile(USER)
   const moviesFormatted = formatMovies(movies)
 
   moviesFormatted.forEach(async movie => {
@@ -40,26 +68,20 @@ async function run() {
           .find('a')
           .attr('href')
 
-        const url = `https://trakt.tv${href}/watch`
+        const url = `https://trakt.tv${href}`
 
-        const xCSRFToken =
-          'zsqXynWDnkNxO7S1FP7q4JwQkpqFiNVHLD+sLC3mEsaF0PIn6ZXLoN5+jTqKIpD1MyLgr/EDkjv1KwriIBSWoQ=='
-        const traktSession =
-          'SkMxL3F4S09keG4xMTN5c1FCWWVRWlNOUzRyV2JHOXlCWmViQUpldkp4dkF5MUVYYVpRQXNoaHBqa1RyekYxOEhvTmMybEhyTW9nbUpHdm52dG4wTEVCQVlva1NGQUh3RHVYcTdMb1JadHAxcTlZWi92RCt4NnRDd1JhWGVWaHQwY2xBR0FpdkYxWnVCUHZ0YzhOQUpGVTZWMllUd0N1dWRtR0pUeEZ2cHdrTEFrUTRhbEhpZkRJUStCdFpyT3B5YkVETWRLUHQzSlVxUUEwVTJ0VTRybTVGUlN6d1lmS2p4NGRoMzZSME5EOXdwZnJUNm52Zk5sQ3h5YTlJWU5nM1FtMVR3bGY0N21aRVNpOS90RVdsS2Jqelo3TVdIY0FPSHdlUlkvbW9wUFE9LS1aQ2kyZ0Rlemc3YWM5ZTJvM3JSN1NRPT0%3D--5cf91c42a9545e2a39fc6228d9cb00292e045c25'
+        addOnWatchList(url, xCSRFToken, traktSession, movieId, movie)
 
-        const cmd = `curl -sS ${url} -H 'x-csrf-token: ${xCSRFToken}' -H 'cookie: _traktsession=${traktSession}' --data 'type=movie&trakt_id=${movieId}&watched_at=now&collected_at=now' --compressed`
-        const result = runCmd(cmd)
-
-        if (result.success) {
-          console.log(`${movie.title} was added to the watched list.`)
-        } else {
-          console.log(`Error on the movie ${movie.title}`)
+        if (movie.rating) {
+          rateMovie(url, xCSRFToken, traktSession, movieId, movie.rating, movie)
         }
+      } else {
+        logger.error(`Too many results for the movie ${movie.title}`)
       }
     } else {
-      console.log(`Movie ${movie.title} not found on search.`)
+      logger.error(`Movie ${movie.title} not found on search.`)
     }
   })
 }
 
-run()
+track()
